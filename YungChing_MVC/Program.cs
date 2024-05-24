@@ -1,10 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using YungChing_MVC.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddDbContext<northwindContext>(options => 
-options.UseSqlServer(builder.Configuration.GetConnectionString("northwindContext")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Model.CommonModels;
 using Platform.LogHelper;
+using Platform.Utility.CommonMapping;
 using System;
 
 namespace DataAccess.MSSQL_LocalDB.BasicData;
@@ -18,33 +19,29 @@ public class ProductDataAccess : IProductDataAccess
         _logService = logService;
         _context = context;
     }
-    public async Task<ResponseModel<IEnumerable<RespProductDataAccessModel>>> QueryBuAsync(ReqProductDataAccessModel reqModel)
+    public async Task<ResponseModel<IEnumerable<RespProductDataAccessModel>>> QueryProductAsync(ReqProductDataAccessModel reqModel)
     {
         var result = new ResponseModel<IEnumerable<RespProductDataAccessModel>>();
 
         try
         {
-            var query =
-                from b in _context.plt_base_bu
-                join u in _context.plt_org_user on b.plt_creator equals u.plt_oid into gj
-                from subu in gj.DefaultIfEmpty()
-                orderby b.plt_code
-                select new RespProductDataAccessModel
-                {
-                    Oid = b.plt_oid,
-                    Name = b.plt_name,
-                    Code = b.plt_code,
-                    Creator = subu.plt_displayname
-                };
-
-            if (!string.IsNullOrWhiteSpace(reqModel.Code))
+            var query = _context.Products.Select(p => new RespProductDataAccessModel
             {
-                query = query.Where(w => w.Code.Contains(reqModel.Code));
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                QuantityPerUnit = p.QuantityPerUnit,
+                UnitPrice = p.UnitPrice
+
+            });   
+
+            if (!string.IsNullOrWhiteSpace(reqModel.ProductName))
+            {
+                query = query.Where(w => w.ProductName.Contains(reqModel.ProductName));
             }
 
-            if (!string.IsNullOrWhiteSpace(reqModel.Name))
+            if (!string.IsNullOrWhiteSpace(reqModel.QuantityPerUnit))
             {
-                query = query.Where(w => w.Name.Contains(reqModel.Name));
+                query = query.Where(w => w.QuantityPerUnit.Contains(reqModel.QuantityPerUnit));
             }
 
             var dbResult = await query.ToListAsync();
@@ -69,23 +66,19 @@ public class ProductDataAccess : IProductDataAccess
         }
         return result;
     }
-    public async Task<ResponseModel<RespProductDataAccessModel>> QueryBuByIdAsync(string buId)
+    public async Task<ResponseModel<RespProductDataAccessModel>> QueryProductByIdAsync(int productId)
     {
         var result = new ResponseModel<RespProductDataAccessModel>();
         try
         {
-            var query =
-                from b in _context.plt_base_bu
-                join u in _context.plt_org_user on b.plt_creator equals u.plt_oid into gj
-                from subu in gj.DefaultIfEmpty()
-                where b.plt_oid == buId
-                select new RespProductDataAccessModel
-                {
-                    Oid = b.plt_oid,
-                    Name = b.plt_name,
-                    Code = b.plt_code,
-                    Creator = subu.plt_displayname
-                };
+            var query = _context.Products.Select(p => new RespProductDataAccessModel
+            {
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                QuantityPerUnit = p.QuantityPerUnit,
+                UnitPrice = p.UnitPrice
+
+            }).Where(p => p.ProductID == productId);
 
             var dbResult = await query.FirstOrDefaultAsync();
             if (dbResult != null)
@@ -102,7 +95,7 @@ public class ProductDataAccess : IProductDataAccess
                 LogLevel = LogLevel.Critical,
                 Exception = ex,
                 Message = result.Message,
-                ReqModel = buId,
+                ReqModel = productId,
                 RspModel = result
             });
         }
@@ -115,19 +108,16 @@ public class ProductDataAccess : IProductDataAccess
 
         try
         {
-            var query =
-                from b in _context.plt_base_bu
-                join u in _context.plt_org_user on b.plt_creator equals u.plt_oid into gj
-                from subu in gj.DefaultIfEmpty()
-                select new RespProductDataAccessModel
-                {
-                    Oid = b.plt_oid,
-                    Name = b.plt_name,
-                    Code = b.plt_code,
-                    Creator = subu.plt_displayname
-                };
+            var query = _context.Products.Select(p => new RespProductDataAccessModel
+            {
+                ProductID = p.ProductID,
+                ProductName = p.ProductName,
+                QuantityPerUnit = p.QuantityPerUnit,
+                UnitPrice = p.UnitPrice
 
-            query = query.Where(w => w.Oid != reqModel.Oid && (w.Code == reqModel.Code || w.Name == reqModel.Name));
+            });
+
+            query = query.Where(w => w.ProductID != reqModel.ProductID && (w.ProductName == reqModel.ProductName));
 
             var dbResult = await query.ToListAsync();
 
@@ -151,12 +141,12 @@ public class ProductDataAccess : IProductDataAccess
         }
         return result;
     }
-    public async Task<ResponseModel<bool>> CreateBuAsync(plt_base_bu bu)
+    public async Task<ResponseModel<bool>> CreateProductAsync(Products product)
     {
         var result = new ResponseModel<bool>();
         try
         {
-            _context.plt_base_bu.Add(bu);
+            _context.Products.Add(product);
             var affected = await _context.SaveChangesAsync();
             result.Data = affected == 1;
         }
@@ -170,28 +160,27 @@ public class ProductDataAccess : IProductDataAccess
                 LogLevel = LogLevel.Critical,
                 Exception = ex,
                 Message = result.Message,
-                ReqModel = bu,
+                ReqModel = product,
                 RspModel = result
             });
         }
         return result;
     }
-    public async Task<ResponseModel<bool>> UpdateBuAsync(ReqUpdateProductDataAccessModel reqModel)
+    public async Task<ResponseModel<bool>> UpdateProductAsync(ReqUpdateProductDataAccessModel reqModel)
     {
         var result = new ResponseModel<bool>();
         try
         {
-            var buToUpdate = await _context.plt_base_bu.FindAsync(reqModel.Oid);
+            var buToUpdate = await _context.Products.FindAsync(reqModel.ProductID);
 
             if (buToUpdate == null)
             {
                 result.Data = false;
                 return result;
             }
-            buToUpdate.plt_code = reqModel.Code;
-            buToUpdate.plt_name = reqModel.Name;
-            buToUpdate.plt_lastmodifier = reqModel.LastModifier;
-            buToUpdate.plt_lastmodifytime = DateTime.Now;
+            buToUpdate.ProductName = reqModel.ProductName;
+            buToUpdate.QuantityPerUnit = reqModel.QuantityPerUnit;
+            buToUpdate.UnitPrice = reqModel.UnitPrice;
 
             var affected = await _context.SaveChangesAsync();
             result.Data = affected == 1;
@@ -212,18 +201,18 @@ public class ProductDataAccess : IProductDataAccess
         }
         return result;
     }
-    public async Task<ResponseModel<bool>> DeleteBuAsync(string buId)
+    public async Task<ResponseModel<bool>> DeleteProductAsync(int productId)
     {
         var result = new ResponseModel<bool>();
         try
         {
-            var bu = await _context.plt_base_bu.FindAsync(buId);
+            var bu = await _context.Products.FindAsync(productId);
             if (bu == null)
             {
                 result.Data = false;
                 return result;
             }
-            _context.plt_base_bu.Remove(bu);
+            _context.Products.Remove(bu);
             var affected = await _context.SaveChangesAsync();
             result.Data = affected == 1;
         }
@@ -237,7 +226,7 @@ public class ProductDataAccess : IProductDataAccess
                 LogLevel = LogLevel.Critical,
                 Exception = ex,
                 Message = result.Message,
-                ReqModel = buId,
+                ReqModel = productId,
                 RspModel = result
             });
         }
