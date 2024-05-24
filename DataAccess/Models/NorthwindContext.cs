@@ -166,20 +166,10 @@ public partial class NorthwindContext : DbContext
                 .IsRequired()
                 .HasMaxLength(40);
             entity.Property(e => e.QuantityPerUnit).HasMaxLength(20);
-            entity.Property(e => e.ReorderLevel).HasDefaultValue((short)0);
             entity.Property(e => e.UnitPrice)
                 .HasDefaultValue(0m)
                 .HasColumnType("money");
-            entity.Property(e => e.UnitsInStock).HasDefaultValue((short)0);
-            entity.Property(e => e.UnitsOnOrder).HasDefaultValue((short)0);
-
-            entity.HasOne(d => d.Category).WithMany(p => p.Products)
-                .HasForeignKey(d => d.CategoryID)
-                .HasConstraintName("FK_Products_Categories");
-
-            entity.HasOne(d => d.Supplier).WithMany(p => p.Products)
-                .HasForeignKey(d => d.SupplierID)
-                .HasConstraintName("FK_Products_Suppliers");
+            
         });
 
         modelBuilder.Entity<Suppliers>(entity =>

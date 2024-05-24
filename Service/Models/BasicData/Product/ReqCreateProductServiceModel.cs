@@ -1,8 +1,6 @@
-﻿using DataAccess.Models;
-
-namespace DataAccess.CustomModels.BasicData
+﻿namespace Service.Models.BasicData
 {
-    public class ReqUpdateProductDataAccessModel
+    public class ReqCreateProductServiceModel
     {
         public int ProductID { get; set; }
 
@@ -15,6 +13,5 @@ namespace DataAccess.CustomModels.BasicData
         public string? QuantityPerUnit { get; set; }
 
         public decimal? UnitPrice { get; set; }
-
     }
 }
