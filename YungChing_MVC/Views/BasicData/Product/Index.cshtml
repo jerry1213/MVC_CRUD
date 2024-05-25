@@ -1,0 +1,23 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Use this page to detail your site's privacy policy.</p>
+<from asp-controller="Product">
+    <div id="productdetails">
+
+    </div>
+</from>
+
+<script>
+    $.ajax({
+        URL: "Create",
+        type: 'Get',
+        success: function (responce) {
+            $("#productdetails").html(responce)
+        }
+    });
+
+
+</script>

@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Service;
 using Platform;
 using YungChing_MVC;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 

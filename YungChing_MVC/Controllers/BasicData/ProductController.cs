@@ -31,7 +31,7 @@ namespace YungChing_MVC.Controllers.BasicData
         /// <summary>
         /// Call View
         /// </summary>
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }
