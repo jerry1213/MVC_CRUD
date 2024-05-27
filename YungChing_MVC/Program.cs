@@ -5,13 +5,13 @@ using Platform;
 using YungChing_MVC;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using DataAccess.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
-builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 #region DI setting (Add class into container)
 // Service 
@@ -27,22 +27,28 @@ builder.Services.RegisterPlatform();
 builder.Services.RegisterWeb();
 #endregion
 
+// Add Swagger services
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Products API", Version = "v1" });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Products API v1"));
 }
-
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -54,5 +60,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers(); // This line ensures that the API controllers are mapped
 
 app.Run();
